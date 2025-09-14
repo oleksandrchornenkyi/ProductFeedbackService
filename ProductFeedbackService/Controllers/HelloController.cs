@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/[controller]")]
-public class HelloController : Controllerbase
+public class HelloController : ControllerBase
 {
     [HttpGet]
     public string GetHello()
