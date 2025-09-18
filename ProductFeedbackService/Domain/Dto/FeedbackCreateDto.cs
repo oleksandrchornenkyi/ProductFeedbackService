@@ -1,7 +1,7 @@
-namespace ProductFeedbackservice.Domain.Dto;
+namespace ProductFeedbackService.Domain.Dto;
 
 public class FeedbackCreateDto
 {
     public int ProductId { get; set; }
-    public string FeedbackText { get; set; }
+    public string ReviewText { get; set; } = "";
 }
