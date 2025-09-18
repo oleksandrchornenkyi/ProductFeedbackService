@@ -5,19 +5,19 @@ using System.Collections.Generic;
 
 public class FeedbackStorage
 {
-    private readonly List<Feedback> _items = new();
+    private readonly List<Feedback> _reviews = new();
     private int _nextId = 1;
 
     public int Add(Feedback feedback)
     {
-        feedback.Id = _nextId++;
+        feedback.ReviewId = _nextId++;
         feedback.CreatedAt = DateTime.UtcNow;
-        _items.Add(feedback);
-        return feedback.Id;
+        _reviews.Add(feedback);
+        return feedback.ReviewId;
     }
 
     public IEnumerable<Feedback> GetAll()
     {
-        return _items.ToArray();
+        return _reviews.ToArray();
     }
 }
