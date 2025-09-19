@@ -3,22 +3,23 @@ namespace ProductFeedbackService.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using ProductFeedbackService.Domain.Dto;
 using ProductFeedbackService.Domain.Models;
-using ProductFeedbackService.Infrastructure.Storage;
+using Microsoft.EntityFrameworkCore;
+using ProductFeedbackService.Infrastructure;
 
 [ApiController]
 [Route("api/[controller]")]
 public class FeedbackController : ControllerBase
 {
-    private readonly FeedbackStorage _storage;
-    public FeedbackController(FeedbackStorage storage) => _storage = storage;
+    private readonly AppDbContext _db;
+    public FeedbackController(AppDbContext db) => _db = db;
     [HttpGet]
-    public ActionResult<IEnumerable<Feedback>> GetAll()
+    public async Task<ActionResult<IEnumerable<Feedback>>> GetAll()
     {
-        var items = _storage.GetAll();
+        var items = await _db.Feedbacks.ToListAsync();
         return Ok(items);
     }
     [HttpPost]
-    public IActionResult Create([FromBody] FeedbackCreateDto dto)
+    public async Task<IActionResult> Create([FromBody] FeedbackCreateDto dto)
     {
         if (dto.ProductId <= 0)
             return BadRequest(new { error = "productId must be > 0." });
@@ -31,9 +32,13 @@ public class FeedbackController : ControllerBase
         var model = new Feedback
         {
             ProductId = dto.ProductId,
-            ReviewText = dto.ReviewText
+            ReviewText = dto.ReviewText,
+            CreatedAt = DateTime.UtcNow
         };
-        var id = _storage.Add(model);
-        return Created(string.Empty, new { id });
+
+        _db.Feedbacks.Add(model);
+        await _db.SaveChangesAsync();
+        
+        return Created(string.Empty, new { id = model.ReviewId });
     }
 }
