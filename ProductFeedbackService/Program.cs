@@ -18,11 +18,11 @@ using (var scope = app.Services.CreateScope())
     if (!db.WordRatings.Any())
     {
         db.WordRatings.AddRange(
-            new WordRating { Phrase = "excellent", Score = 5 },
-            new WordRating { Phrase = "good", Score = 4 },
-            new WordRating { Phrase = "average", Score = 3 },
-            new WordRating { Phrase = "bad", Score = 2 },
-            new WordRating { Phrase = "very bad", Score = 1 }
+            new WordRating { Phrase = "excellent".ToLowerInvariant(), Score = 5 },
+            new WordRating { Phrase = "good".ToLowerInvariant(), Score = 4 },
+            new WordRating { Phrase = "average".ToLowerInvariant(), Score = 3 },
+            new WordRating { Phrase = "bad".ToLowerInvariant(), Score = 2 },
+            new WordRating { Phrase = "very bad".ToLowerInvariant(), Score = 1 }
         );
         db.SaveChanges();
     }
