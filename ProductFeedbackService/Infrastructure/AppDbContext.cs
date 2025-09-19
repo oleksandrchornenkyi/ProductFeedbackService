@@ -1,4 +1,3 @@
-// Infrastructure/AppDbContext.cs
 namespace ProductFeedbackService.Infrastructure;
 
 using Microsoft.EntityFrameworkCore;
