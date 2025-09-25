@@ -11,11 +11,16 @@ using ProductFeedbackService.Infrastructure;
 public class FeedbackController : ControllerBase
 {
     private readonly AppDbContext _db;
-    public FeedbackController(AppDbContext db) => _db = db;
+    public FeedbackController(AppDbContext db)
+    {
+        _db = db;
+    }
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Feedback>>> GetAll()
     {
-        var items = await _db.Feedbacks.ToListAsync();
+        var items = await _db.Feedbacks
+            .AsNoTracking()
+            .ToListAsync();
         return Ok(items);
     }
     [HttpPost]
@@ -32,13 +37,18 @@ public class FeedbackController : ControllerBase
         var model = new Feedback
         {
             ProductId = dto.ProductId,
-            ReviewText = dto.ReviewText,
+            ReviewText = dto.ReviewText.Trim(),
             CreatedAt = DateTime.UtcNow
         };
-
         _db.Feedbacks.Add(model);
         await _db.SaveChangesAsync();
-        
-        return Created(string.Empty, new { id = model.ReviewId });
+        return Created();
+    }
+    [HttpGet("rating/{productId:int}")]
+    public async Task<ActionResult<double>> GetProductRating(int productId)
+    {
+        if (productId <= 0) return BadRequest("productId must be > 0");
+        var rating = await _db.ProductRatings.FirstOrDefaultAsync(r => r.ProductId == productId);
+        return Ok(rating?.AverageScore ?? 0.0);
     }
 }
