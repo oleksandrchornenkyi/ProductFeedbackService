@@ -9,7 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("InMemoryDb"));
+builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseInMemoryDatabase("InMemoryDb"));
+builder.Services.AddScoped(sp => sp.GetRequiredService<IDbContextFactory<AppDbContext>>().CreateDbContext());
 builder.Services.AddSingleton<IRatingCalculator, RatingCalculator>();
 builder.Services.AddHostedService<RatingsJob>();
 

@@ -5,18 +5,15 @@ using ProductFeedbackService.Domain.Dto;
 using ProductFeedbackService.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using ProductFeedbackService.Infrastructure;
-using ProductFeedbackService.Domain.Services;
 
 [ApiController]
 [Route("api/[controller]")]
 public class FeedbackController : ControllerBase
 {
     private readonly AppDbContext _db;
-    private readonly IRatingCalculator _calc;
-    public FeedbackController(AppDbContext db, IRatingCalculator calc)
+    public FeedbackController(AppDbContext db)
     {
         _db = db;
-        _calc = calc;
     }
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Feedback>>> GetAll()
@@ -45,9 +42,7 @@ public class FeedbackController : ControllerBase
         };
         _db.Feedbacks.Add(model);
         await _db.SaveChangesAsync();
-        var dict = await _db.WordRatings.AsNoTracking().ToListAsync();
-        var score = _calc.CalculateReviewScore(model.ReviewText, dict);
-        return Created(string.Empty, new { id = model.FeedbackId, score });
+        return Created();
     }
     [HttpGet("rating/{productId:int}")]
     public async Task<ActionResult<double>> GetProductRating(int productId)

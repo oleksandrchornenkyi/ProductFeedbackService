@@ -7,25 +7,23 @@ using Microsoft.Extensions.Hosting;
 
 public class RatingsJob : BackgroundService
 {
-    private readonly IServiceScopeFactory _scopeFactory;
     private readonly IRatingCalculator _ratingCalculator;
-    public RatingsJob(IServiceScopeFactory scopeFactory, IRatingCalculator ratingCalculator)
+    private readonly IDbContextFactory<AppDbContext> _dbFactory;
+    public RatingsJob(IDbContextFactory<AppDbContext> dbContextFactory, IRatingCalculator ratingCalculator)
     {
-        _scopeFactory = scopeFactory;
+        _dbFactory = dbContextFactory;
         _ratingCalculator = ratingCalculator;
     }
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
-
+        
         while (await timer.WaitForNextTickAsync(stoppingToken))
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-            var dictionary = await db.WordRatings.ToListAsync(stoppingToken);
-            var feedbacks = await db.Feedbacks.ToListAsync(stoppingToken);
-
+            await using var db = await _dbFactory.CreateDbContextAsync(stoppingToken);
+            var dictionary = db.WordRatings.ToList();
+            var feedbacks = db.Feedbacks.ToList();
+            
             var groups = feedbacks.GroupBy(f => f.ProductId);
 
             foreach (var group in groups)
