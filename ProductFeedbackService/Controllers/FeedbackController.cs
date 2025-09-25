@@ -5,17 +5,25 @@ using ProductFeedbackService.Domain.Dto;
 using ProductFeedbackService.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using ProductFeedbackService.Infrastructure;
+using ProductFeedbackService.Domain.Services;
 
 [ApiController]
 [Route("api/[controller]")]
 public class FeedbackController : ControllerBase
 {
     private readonly AppDbContext _db;
-    public FeedbackController(AppDbContext db) => _db = db;
+    private readonly IRatingCalculator _calc;
+    public FeedbackController(AppDbContext db, IRatingCalculator calc)
+    {
+        _db = db;
+        _calc = calc;
+    }
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Feedback>>> GetAll()
     {
-        var items = await _db.Feedbacks.ToListAsync();
+        var items = await _db.Feedbacks
+            .AsNoTracking()
+            .ToListAsync();
         return Ok(items);
     }
     [HttpPost]
@@ -32,13 +40,20 @@ public class FeedbackController : ControllerBase
         var model = new Feedback
         {
             ProductId = dto.ProductId,
-            ReviewText = dto.ReviewText,
+            ReviewText = dto.ReviewText.Trim(),
             CreatedAt = DateTime.UtcNow
         };
-
         _db.Feedbacks.Add(model);
         await _db.SaveChangesAsync();
-        
-        return Created(string.Empty, new { id = model.ReviewId });
+        var dict = await _db.WordRatings.AsNoTracking().ToListAsync();
+        var score = _calc.CalculateReviewScore(model.ReviewText, dict);
+        return Created(string.Empty, new { id = model.FeedbackId, score });
+    }
+    [HttpGet("rating/{productId:int}")]
+    public async Task<ActionResult<double>> GetProductRating(int productId)
+    {
+        if (productId <= 0) return BadRequest("productId must be > 0");
+        var rating = await _db.ProductRatings.FirstOrDefaultAsync(r => r.ProductId == productId);
+        return Ok(rating?.AverageScore ?? 0.0);
     }
 }

@@ -4,14 +4,14 @@ using ProductFeedbackService.Domain.Models;
 using ProductFeedbackService.Infrastructure.Services;
 using ProductFeedbackService.Domain.Services;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("InMemoryDb"));
-builder.Services.AddScoped<IRatingCalculator, RatingCalculator>();
+builder.Services.AddSingleton<IRatingCalculator, RatingCalculator>();
+builder.Services.AddHostedService<RatingsJob>();
 
 var app = builder.Build();
 
