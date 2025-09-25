@@ -3,6 +3,7 @@ namespace ProductFeedbackService.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using ProductFeedbackService.Domain.Services;
 using ProductFeedbackService.Domain.Models;
+using Microsoft.Extensions.Hosting;
 
 public class RatingsJob : BackgroundService
 {
@@ -15,7 +16,7 @@ public class RatingsJob : BackgroundService
     }
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var timer = new PeriodicTimer(TimeSpan.FromMinutes(1));
+        var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
 
         while (await timer.WaitForNextTickAsync(stoppingToken))
         {
@@ -51,6 +52,20 @@ public class RatingsJob : BackgroundService
                     rating.AverageScore = average;
                     rating.UpdatedAt = DateTime.UtcNow;
                 }
+            }
+            foreach (var word in dictionary)
+            {
+                double sum = 0; int count = 0;
+                foreach (var feedback in feedbacks)
+                {
+                    if (feedback.ReviewText.ToLowerInvariant().Contains(word.Phrase.ToLowerInvariant()))
+                    {
+                        var reviewScore = _ratingCalculator.CalculateReviewScore(feedback.ReviewText, dictionary);
+                        sum += reviewScore;
+                        count++;
+                    }
+                }
+                word.AverageScore = count == 0 ? 0.0 : sum / count;
             }
             await db.SaveChangesAsync(stoppingToken);
         }

@@ -8,8 +8,7 @@ public class RatingCalculator : IRatingCalculator
 {
     public double CalculateReviewScore(string text, IEnumerable<WordRating> dict)
     {
-        if (string.IsNullOrWhiteSpace(text) || dict is null)
-            return 0.0;
+        if (string.IsNullOrWhiteSpace(text) || dict is null) return 0.0;
         // normalization
         var lower = text.ToLowerInvariant();
         lower = Regex.Replace(lower, @"[^a-z0-9\s]+", " ");
